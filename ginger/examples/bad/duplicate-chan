@@ -1,0 +1,3 @@
+c = chan [k1];
+c = chan [k2];
+go { skip }
