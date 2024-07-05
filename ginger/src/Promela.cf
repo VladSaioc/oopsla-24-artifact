@@ -1,0 +1,183 @@
+comment "//";
+comment "/*" "*/";
+
+-- Module tokens
+position token PROCTYPE {"proctype"};
+position token TYPEDEF {"typedef"};
+position token INIT {"init"};
+position token DEFINE {"#define"};
+position token FREEVAR {"??"};
+
+-- Type tokens
+position token INT {"int"};
+position token BOOL {"bool"};
+position token CHAN {"chan"};
+position token OF {"of"};
+
+-- Constants tokens
+position token TRUE {"true"};
+position token FALSE {"false"};
+position token NUMBER (digit)+;
+
+-- Identifiers
+position token LEN {"len"};
+position token ASSERT {"assert"};
+
+-- Statement tokens
+position token SKIP {"skip"};
+position token BREAK {"break"};
+position token RUN {"run"};
+position token ELSE {"else"};
+position token IF {"if"};
+position token DO {"do"};
+position token FOR {"for"};
+position token GOTO {"goto"};
+position token INCR {"++"};
+position token DECR {"--"};
+
+position token AS {"="};
+
+-- Range tokens
+position token BETWEEN {".."};
+position token IN {"in"};
+position token COL {":"};
+
+-- L-Value tokens
+position token DOT {"."};
+
+-- Expression tokens
+position token OR {"||"};
+position token AND {"&&"};
+position token CEQ {"=="};
+position token CNE {"!="};
+position token CLE {"<="};
+position token CLT {"<"};
+position token CGE {">="};
+position token CGT {">"};
+position token PLUS {"+"};
+position token MINUS {"-"};
+position token MULT {"*"};
+position token DIV {"/"};
+
+-- Message passing tokens
+position token BANG {"!"};
+position token RECV {"?"};
+
+position token ID (letter|["_"]) ((digit|letter|["_"])*);
+
+-- Entry point
+Program. Spec ::= [Module];
+[]. [Module] ::= ;
+(:). [Module] ::= Module [Module];
+
+-- Modules
+Define. Module ::= DEFINE ID Exp;
+Init. Module ::= INIT "{" Steps "}";
+---- Proctype
+Proctype. Module ::= PROCTYPE ID "(" [Param] ")" "{" Steps "}";
+separator Param ";";
+Param. Param ::= Decl;
+
+---- Typedef
+Typedef. Module ::= TYPEDEF ID "{" [Field] "}";
+TopDecl. Module ::= Decl;
+
+terminator nonempty Field ";";
+Field. Field ::= Decl;
+
+-- Declarations
+Decl. Decl ::= Type ID DeclBody ;
+
+DBodyEmpty. DeclBody ::= ;
+DBodyExp. DeclBody ::= AS Exp;
+DBodyChan. DeclBody ::= AS "[" Exp "]" OF "{" [Type] "}";
+
+-- Steps
+StepsArrow. Steps ::= Step "->" Steps;
+StepsMissing. Steps ::= ";" Steps;
+StepsSemi. Steps ::= Step ";" Steps;
+StepsLast. Steps ::= Step;
+StepsDone. Steps ::= ;
+
+StepDecl. Step ::= Decl;
+StepStmt. Step ::= Stmt;
+
+-- Statements
+separator nonempty Option "::";
+OptionSt. Option ::= Step "->" Steps;
+OptionSt2. Option ::= Step ";" Steps;
+OptionEls. Option ::= ELSE "->" Steps;
+OptionEls2. Option ::= ELSE ";" Steps;
+
+StmtIf. Stmt ::= IF "::" [Option] "fi";
+StmtDo. Stmt ::= DO "::" [Option] "od";
+StmtFor. Stmt ::= FOR "(" Range ")" "{" Steps "}";
+StmtGoto. Stmt ::= GOTO ID;
+StmtLabel. Stmt ::= ID COL SKIP;
+StmtAssign. Stmt ::= LVal AS Exp;
+StmtIncr. Stmt ::= LVal INCR;
+StmtDecr. Stmt ::= LVal DECR;
+StmtSend. Stmt ::= LVal BANG [Exp];
+StmtRecv. Stmt ::= LVal RECV [Exp];
+StmtExpr. Stmt ::= Cond;
+StmtSkip. Stmt ::= SKIP;
+StmtBreak. Stmt ::= BREAK;
+StmtAssert. Stmt ::= ASSERT Cond;
+
+---- Conditional expression
+coercions Cond 2;
+CondOr. Cond ::= Cond OR Cond1;
+CondAnd. Cond1 ::= Cond1 AND Cond2;
+CondNot. Cond2 ::= BANG Cond2;
+CondExp. Cond2 ::= Exp;
+
+---- Range expression
+RangeExps. Range ::= ID COL Exp BETWEEN Exp;
+RangeArrs. Range ::= ID IN ID;
+
+---- Expressions
+separator nonempty Exp ",";
+coercions Exp 4;
+
+---- Binary expressions
+ExpEq. Exp ::= Exp1 CEQ Exp1;
+ExpNe. Exp ::= Exp1 CNE Exp1;
+ExpLe. Exp ::= Exp1 CLE Exp1;
+ExpGe. Exp ::= Exp1 CGE Exp1;
+ExpLt. Exp ::= Exp1 CLT Exp1;
+ExpGt. Exp ::= Exp1 CGT Exp1;
+ExpPlus. Exp1 ::= Exp1 PLUS Exp2;
+ExpMinus. Exp1 ::= Exp1 MINUS Exp2;
+ExpProd. Exp2 ::= Exp2 MULT Exp3;
+ExpDiv. Exp2 ::= Exp2 DIV Exp3;
+
+---- Unary expressions
+ExpNeg. Exp3 ::= MINUS Exp4;
+
+---- Calls
+ExpRun. Exp4 ::= RUN ID "(" [Exp] ")";
+ExpLen. Exp4 ::= LEN "(" LVal ")";
+
+---- Terminal expressions
+ExpConst. Exp4 ::= Const;
+ExpLVal. Exp4 ::= LVal;
+
+---- L-Values
+ValId. LVal ::= ID;
+ValArr. LVal ::= LVal "[" Exp "]";
+ValField. LVal ::= LVal DOT ID;
+
+-- Types
+separator nonempty Type ",";
+TypeChan. Type ::= CHAN;
+TypeInt. Type ::= INT;
+TypeBool. Type ::= BOOL;
+TypeNamed. Type ::= ID;
+
+-- Constants
+CInt. Const ::= NUMBER;
+CTrue. Const ::= TRUE;
+CFalse. Const ::= FALSE;
+CFree. Const ::= FREEVAR;
+
+entrypoints Spec;

@@ -1,0 +1,79 @@
+-- Comments
+comment "//";
+
+-- Structural keywords
+position token GO {"go"};
+position token FOR {"for"};
+position token RETURN {"return"};
+position token IF {"if"};
+position token ELSE {"else"};
+position token SKIP {"skip"};
+
+-- Channel operations
+position token SND {"!"};
+position token RCV {"?"};
+
+-- Expression tokens
+position token AND {"&"};
+position token OR {"|"};
+position token EQL {"=="};
+position token NEQ {"/="};
+position token GE {">="};
+position token GTE {">"};
+position token LE {"<="};
+position token LTE {"<"};
+position token PLUS {"+"};
+position token MINUS {"-"};
+position token MULT {"*"};
+position token DIV {"/"};
+position token TRUE {"true"};
+position token FALSE {"false"};
+
+-- Constants
+position token NUMBER (digit)+;
+
+-- Identifiers
+position token ID (letter|["_"]) ((digit|letter|["_'"])*);
+
+-- Program
+Prog. Prog ::= [Stm];
+
+-- Statement
+separator Stm ";";
+Chan. Stm ::= ID "=" "chan" "[" Exp "]";
+Wgdef. Stm ::= ID "=" "WaitGroup";
+Skip. Stm ::= SKIP;
+Return. Stm ::= RETURN;
+SOp. Stm ::= Op;
+SIf. Stm ::= IF Exp "{" [Stm] "}" ELSE "{" [Stm] "}";
+For. Stm ::= FOR ID ":" Exp ".." Exp "{" [Op] "}";
+Go.  Stm ::= GO "{" [Stm] "}";
+
+-- Atomic channel operations
+separator Op ";";
+Snd. Op ::= ID SND;
+Rcv. Op ::= ID RCV;
+Add. Op ::= ID ".Add(" Exp ")";
+Wait. Op ::= ID ".Wait()";
+
+-- Expressions
+coercions Exp 5;
+Or. Exp ::= Exp OR Exp1;
+And. Exp1 ::= Exp1 AND Exp2;
+Eq. Exp2 ::= Exp3 EQL Exp3;
+Ne. Exp2 ::= Exp3 NEQ Exp3;
+Le. Exp2 ::= Exp3 LE Exp3;
+Ge. Exp2 ::= Exp3 GE Exp3;
+Lt. Exp2 ::= Exp3 LTE Exp3;
+Gt. Exp2 ::= Exp3 GTE Exp3;
+Plus. Exp3 ::= Exp3 PLUS Exp4;
+Minus. Exp3 ::= Exp3 MINUS Exp4;
+Mult. Exp4 ::= Exp4 MULT Exp5;
+Div. Exp4 ::= Exp4 DIV Exp5;
+Var. Exp5 ::= ID;
+Const. Exp5 ::= NUMBER;
+Not. Exp5 ::= SND Exp5;
+Tru. Exp5 ::= TRUE;
+Fal. Exp5 ::= FALSE;
+
+entrypoints Prog;

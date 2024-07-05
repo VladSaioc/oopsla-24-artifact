@@ -1,0 +1,60 @@
+.DS_Store
+.vscode
+*.o
+*.exe
+*.hi
+*.bak
+ignored
+sketches
+
+dist
+dist-newstyle
+ignored
+
+ginger.cabal
+
+# Generated Promela front-end
+src/Promela/*.hs
+src/Promela/*.x
+src/Promela/*.y
+src/Promela/*.txt
+!src/Promela/Ast.hs
+!src/Promela/GetAst.hs
+!src/Promela/Utilities.hs
+!src/Promela/CommType.hs
+
+# Generated Trace front-end
+src/Trace/*.hs
+src/Trace/*.x
+src/Trace/*.y
+src/Trace/*.txt
+!src/Trace/Ast.hs
+!src/Trace/GetAst.hs
+
+# Generated VIRGo front-end
+src/VIRGo/*.x
+src/VIRGo/*.y
+src/VIRGo/*.txt
+src/VIRGo/*VIRGo.hs
+src/VIRGo/ErrM.hs
+
+# Miscellaneous
+*.pre
+
+# Stack-generated
+.stack-work/
+*~
+
+# Output
+output
+examples\#*
+examples__*
+*__examples__*
+examples/**/*.dfy
+examples/**/*.dll
+examples/**/*.runtimeconfig.json
+
+# Dafny
+dafny-*.zip
+dafny/
+<stdin>.*
