@@ -1,0 +1,65 @@
+package promela
+
+import (
+	"errors"
+	"fmt"
+	"go/ast"
+
+	"github.com/nicolasdilley/gomela/promela/promela_ast"
+)
+
+func (m *Model) translateSwitchStmt(s *ast.SwitchStmt) (b *promela_ast.BlockStmt, defers *promela_ast.BlockStmt, err error) {
+	b = &promela_ast.BlockStmt{List: []promela_ast.Node{}}
+	defers = &promela_ast.BlockStmt{List: []promela_ast.Node{}}
+	i := &promela_ast.IfStmt{If: m.Props.Fileset.Position(s.Pos()), Init: &promela_ast.BlockStmt{List: []promela_ast.Node{}}}
+
+	tag, err1 := m.TranslateExpr(s.Tag)
+	err = errors.Join(err, err1)
+	i.Init = tag
+
+	init, d1, err1 := m.TranslateBlockStmt(&ast.BlockStmt{List: []ast.Stmt{s.Init}})
+	err = errors.Join(err, err1)
+
+	addBlock(i.Init, init)
+	addBlock(defers, d1)
+
+	for _, stmt := range s.Body.List {
+		switch stmt := stmt.(type) {
+		case *ast.CaseClause:
+			for _, e := range stmt.List {
+				expr, err1 := m.TranslateExpr(e)
+				err = errors.Join(err, err1)
+				addBlock(b, expr)
+			}
+
+			var body *promela_ast.BlockStmt
+			var d2 *promela_ast.BlockStmt
+			var err1 error
+			if len(stmt.Body) == 0 {
+				continue
+			}
+
+			switch s := stmt.Body[0].(type) {
+			case *ast.BlockStmt:
+				body, d2, err1 = m.TranslateBlockStmt(s)
+			default:
+				body, d2, err1 = m.TranslateBlockStmt(&ast.BlockStmt{List: stmt.Body})
+			}
+
+			if len(d2.List) > 0 {
+				return b, d2, errors.New(DEFER_IN_SWITCH + m.Props.Fileset.Position(s.Pos()).String())
+			}
+			if err1 != nil {
+				return b, defers, err1
+			}
+			i.Guards = append(i.Guards, &promela_ast.SingleGuardStmt{Cond: &promela_ast.Ident{Name: "true"}, Body: body})
+		default:
+			fmt.Println("Promela_translator.go: in a switch and its not a case clause or a default")
+		}
+	}
+
+	if len(i.Guards) > 0 {
+		b.List = append(b.List, i)
+	}
+	return b, defers, err
+}
