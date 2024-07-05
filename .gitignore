@@ -1,0 +1,5 @@
+*-results.res
+*.pml-*.dll
+*.pml-*.dfy
+*.pml-*.runtimeconfig.json
+gomela-results
