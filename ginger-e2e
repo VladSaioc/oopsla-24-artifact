@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [ -e $ROOT ]; then
+  ROOT="$(dirname $(realpath $0))"
+fi
+
+PKG="$ROOT/examples/src/$1"
+RESULTS="$ROOT/gomela-results/$1"
+
+mkdir -p $RESULTS
+
+$ROOT/gomela/gomela -gopath "$(dirname $(realpath $0))/examples/src" -result_folder "$RESULTS" fs $PKG > "$RESULTS/results.txt"
+$ROOT/ginger/recursive-run.sh $RESULTS
+$ROOT/result-parser/collect-metrics.sh $RESULTS

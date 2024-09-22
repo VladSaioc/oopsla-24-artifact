@@ -1,0 +1,16 @@
+c = chan [0];
+go {
+  go {
+    for j : 0 .. y {
+      c!
+    }
+  };
+  go {
+    for k : 0 .. z {
+      c?
+    }
+  };
+  for i : 0 .. x {
+    c!
+  }
+}

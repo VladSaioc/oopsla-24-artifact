@@ -1,0 +1,11 @@
+*-results.res
+*.pml-*.dll
+*.pml-*.dfy
+*.pml-*.runtimeconfig.json
+fragments-examples/**/obj
+fragments-examples/**/ref
+fragments-examples/**/*.cs
+fragments-examples/**/*.csproj
+fragments-examples/**/*.deps.json
+fragments-examples/**/*.pdb
+gomela-results
